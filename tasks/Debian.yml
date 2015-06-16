@@ -1,0 +1,36 @@
+---
+
+- name: install curl
+  apt: name=curl state=present update_cache=yes cache_valid_time=86400
+
+- name: Setup Java repo
+  apt_repository: repo='ppa:webupd8team/java'
+
+- name: Accept Java License
+  shell: 'echo "oracle-java{{ java_version }}-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections'
+
+- name: Install Java
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+    - oracle-java{{ java_version }}-installer
+
+- stat: path=/etc/apt/sources.list.d/basho_riak.list
+  register: basho_riak_repo_installed
+
+- name: fetch repo script from packagecloud.io
+  get_url: url=https://packagecloud.io/install/repositories/basho/riak/script.deb.sh dest=/tmp/basho-repo.sh
+  when: not basho_riak_repo_installed.stat.exists
+
+- name: Run repo installation script
+  shell: /bin/bash /tmp/basho-repo.sh
+  when: not basho_riak_repo_installed.stat.exists
+
+- name: update pam configuration
+  lineinfile: line="session    required   pam_limits.so" dest={{ item }} regexp="session    required   pam_limits.so" insertafter="^# end of pam-auth-update config"
+  with_items:
+    - /etc/pam.d/common-session
+    - /etc/pam.d/common-session-noninteractive
+
+- apt: name=riak={{riak_version}} state=present
+
+

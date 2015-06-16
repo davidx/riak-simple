@@ -1,0 +1,4 @@
+## {{ ansible_managed }}
+{% for config_item in riak_config %}
+{{ config_item }} = {{ riak_config[config_item] }}
+{% endfor %}

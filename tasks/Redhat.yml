@@ -1,0 +1,47 @@
+---
+- name: fetch yum repository
+  get_url: url=http://mirror.pnl.gov/epel/6/i386/epel-release-6-8.noarch.rpm dest=/tmp
+
+- name: configure the epel repository
+  yum: name=/tmp/epel-release-6-8.noarch.rpm
+
+
+- name: install java
+  yum: name=java-1.8.0-openjdk
+
+- stat: path=/etc/yum.repos.d/basho_riak.repo
+  register: basho_riak_repo_installed
+
+- name: fetch the basho repo install script from packagecloud
+  get_url: url=https://packagecloud.io/install/repositories/basho/riak/script.rpm dest=/tmp/basho-repo.sh
+  when: not basho_riak_repo_installed.stat.exists
+
+- name: Run repo installation script
+  shell: /bin/bash /tmp/basho-repo.sh
+  when: not basho_riak_repo_installed.stat.exists
+
+- name: install libselinux-python
+  yum: name=libselinux-python state=present
+
+#- name: set riak_ee fact
+#  set_fact: riak_ee=yes
+#  when: riak_package.find('ee') != -1
+
+# CentOS specific package installations
+
+# edit hosts file fix aws dns
+
+
+- name: update limits
+  copy: src=etc_security_limits.d_riak.conf dest=/etc/security/limits.d/riak.conf owner=root group=root mode=0644
+
+
+- name: create sysctl.d
+  file: dest=/etc/sysctl.d state=directory
+
+- name: configure sysctl
+  template: src=etc_sysctl.d_riak.conf.j2 dest=/etc/sysctl.d/riak.conf owner=root group=root mode=0644
+  notify: update sysctl
+
+- name: install riak
+  yum: name="{{ riak_package }}" state=present

@@ -1,0 +1,4 @@
+riak_usr_lib: /usr/lib64
+riak_custom_package: false
+riak_package: riak-{{ riak_version }}.el7.centos
+

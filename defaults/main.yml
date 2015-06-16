@@ -1,0 +1,71 @@
+---
+# defaults file for davidx.riak-simple
+riak_version: "2.1.1"
+riak_config:
+  search: 'on'
+  search.solr.port: '8093'
+  search.solr.jmx_port: '8985'
+  search.solr.jvm_options: '-Xms1g -Xmx1g -XX:+UseStringCache -XX:+UseCompressedOops'
+  search.root_dir: '/var/lib/riak/yz'
+  anti_entropy: 'active'
+  log.console: 'file'
+  log.console.level: 'info'
+  log.console.file: '/var/log/riak/console.log'
+  log.error.file: '/var/log/riak/error.log'
+  log.syslog: 'off'
+  listener.http.internal: '0.0.0.0:8098'
+  listener.protobuf.internal: '0.0.0.0:8087'
+  ring.state_dir: '/var/lib/riak/ring'
+  handoff.port: '8099'
+  dtrace: 'off'
+  platform_bin_dir: '/usr/sbin'
+  platform_data_dir: '/var/lib/riak'
+  platform_etc_dir: '/etc/riak'
+  platform_lib_dir: '/usr/lib/riak/lib'
+  platform_log_dir: '/var/log/riak'
+  log.crash.file: './log/crash.log'
+  log.crash.maximum_message_size: '64KB'
+  log.crash.size: '10MB'
+  log.crash.rotation: '$D0'
+  log.crash.rotation.keep: '5'
+  log.error.redirect: 'on'
+  log.error.messages_per_second: '100'
+  storage_backend: 'bitcask'
+  anti_entropy.tree.build_limit.number: '1'
+  anti_entropy.tree.build_limit.per_timespan: '1h'
+  anti_entropy.tree.expiry: '1w'
+  anti_entropy.concurrency_limit: '2'
+  anti_entropy.trigger_interval: '15s'
+  anti_entropy.data_dir: '/var/lib/riak/anti_entropy'
+  anti_entropy.write_buffer_size: '4MB'
+  anti_entropy.max_open_files: '20'
+  javascript.map_pool_size: '8'
+  javascript.reduce_pool_size: '6'
+  javascript.hook_pool_size: '2'
+  javascript.maximum_heap_size: '8'
+  javascript.maximum_stack_size: '16'
+  transfer_limit: '50000'
+  object.format: '1'
+  riak_control: 'on'
+  riak_control.auth.mode: 'userlist'
+  riak_control.auth.user.user.password: 'pass'
+  bitcask.data_root: '/var/lib/riak/bitcask'
+  bitcask.io_mode: 'erlang'
+  leveldb.data_root: '/var/lib/riak/leveldb'
+  leveldb.bloomfilter: 'on'
+  nodename: "riak@{{ riak_local_ip }}"
+  distributed_cookie: 'riak'
+  erlang.async_threads: '64'
+  erlang.max_ports: '64000'
+  erlang.crash_dump: '/var/log/riak/erl_crash.dump'
+  erlang.max_ets_tables: '256000'
+  erlang.process_limit: '256000'
+
+riak_local_ip: "{{ ansible_default_ipv4['address'] }}"
+riak_http_port: "{{ riak_config['listener.http.internal'].split(':')[1] }}"
+riak_net_speed: 1Gb
+
+ulimit:
+  riak: 128000
+
+java_version: 8

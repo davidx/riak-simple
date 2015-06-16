@@ -1,0 +1,50 @@
+---
+- include_vars: vagrant.yml
+  when: ansible_ssh_user == 'vagrant'
+
+- include_vars: Redhat.yml
+  when: ansible_os_family  == "RedHat"
+
+- include: RedHat.yml
+  when: ansible_os_family  == "RedHat"
+
+- include: Debian.yml
+  when: ansible_os_family  == "Debian"
+
+- include: Ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+
+- name: copying custom beams
+  copy: src={{ item }} dest="{{ riak_patch_dir }}/"
+  with_fileglob:
+  - "{{riak_custom_beams_dir}}/*.beam"
+  when: riak_custom_beams_dir is defined
+  notify:
+  - restart riak
+  - wait for http
+  - wait for kv
+
+- name: configure riak.conf
+  template: src=etc_riak_riak.conf.j2 dest=/etc/riak/riak.conf
+  tags: configfiles
+  notify:
+  - restart riak
+  - wait for http
+  - wait for kv
+
+- name: fix aws hostname
+  lineinfile: dest=/etc/hosts line="{{ ansible_default_ipv4['address'] }} {{ hostvars[inventory_hostname]['ansible_nodename'] }} ip-{{ ansible_default_ipv4['address'] | regex_replace('\.', '-')  }}"
+  when: '".ec2.internal" in ansible_nodename'
+
+- name: start riak
+  service: name=riak enabled=yes state=started
+
+- name: wait for port {{ riak_http_port }} to become active
+  wait_for: port={{ riak_http_port }}
+
+- name: wait for riak_kv service to start
+  riak: wait_for_service=kv
+
+- name: ping riak
+  riak: command=ping
+  register: info
